@@ -18,6 +18,13 @@ class Ball{
     void Update(){
         x += speedx;
         y += speedy;
+        //y+radius =bottom edge || y-radius top edge
+        if(y + radius >= GetScreenHeight() || y - radius <= 0){
+            speedy *= -1;
+        }//x+radius = right edge || y-radius left edge
+        if( x+ radius >= GetScreenWidth() || x - radius <= 0){
+            speedx *= -1;
+        }
     };
 };
 
@@ -45,6 +52,7 @@ int main(){
     
     
     ball.Update();
+    ClearBackground(BLACK);
     //rectanggle
     DrawRectangle(0,res_height/2-60,25, 120, WHITE);
     DrawRectangle(res_width - 20, res_height/2-60,25,120,WHITE);
