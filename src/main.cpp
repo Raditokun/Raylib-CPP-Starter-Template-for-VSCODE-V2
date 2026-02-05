@@ -2,12 +2,15 @@
 #include <iostream>
 
 using namespace std;
+int cpu_score;
+int player_score;
 
 class Ball{
     public:
     float x, y;
     int speedx,speedy;
     int radius;
+    
 
     void Draw(){
         //Cirlce
@@ -15,17 +18,42 @@ class Ball{
 
     };
 
-    void Update(){
+    void Update(Sound& sound){
         x += speedx;
         y += speedy;
         //y+radius =bottom edge || y-radius top edge
         if(y + radius >= GetScreenHeight() || y - radius <= 0){
             speedy *= -1;
-        }//x+radius = right edge || y-radius left edge
-        if( x+ radius >= GetScreenWidth() || x - radius <= 0){
-            speedx *= -1;
         }
+
+        //cpu win
+        if( x+ radius >= GetScreenWidth()){
+            cpu_score ++;
+            PlaySound(sound);
+            ResetBall();
+
+
+        }
+        if(x-radius <= 0){
+            player_score ++;
+            PlaySound(sound);   
+            ResetBall();
+        }
+
+
     };
+
+    void ResetBall(){
+        x = GetScreenWidth()/2;
+        y = GetScreenHeight()/2;
+
+        int speed_choices[2] = {1,-1};
+        speedx *= speed_choices[GetRandomValue(0,1)];
+        speedy *= speed_choices[GetRandomValue(0,1)];
+
+            
+        
+    }
 };
 
 class Padle{
@@ -82,8 +110,11 @@ int main(){
     const int res_width = 1280;
     const int res_height = 800; 
 
-   InitWindow(res_width, res_height, "nyoba game di raylib");
+   InitWindow(res_width,     res_height, "nyoba game di raylib");
+   InitAudioDevice();
    SetTargetFPS(60);
+   Texture2D image = LoadTexture("src/jeff.jpg");
+   Sound sound = LoadSound("src/mario.mp3");
 
 
    //ball
@@ -106,28 +137,46 @@ int main(){
     cpu.y = GetScreenHeight()/2 - cpu.height/2;
     cpu.speed = 6; 
 
+   
+
+
    while(WindowShouldClose() == false){
     BeginDrawing();
 
     
     //update
-    ball.Update();
+    ball.Update(sound);
     player.Update();
     cpu.Update(ball.y);
     ClearBackground(BLACK);
+
     
-   
+    
+    //cheack for collision ball with paddle
+    if(CheckCollisionCircleRec(Vector2{ball.x,ball.y}, ball.radius, Rectangle{player.x,player.y,player.widht,player.height}))
+    {
+        ball.speedx *= -1;
+    }
+     if(CheckCollisionCircleRec(Vector2{ball.x,ball.y}, ball.radius, Rectangle{cpu.x,cpu.y,cpu.widht,cpu.height}))
+    {
+        ball.speedx *= -1;
+    }
 
 
     //board
+    DrawTexture(image,0,0,WHITE);
     DrawLine(res_width/2,0,res_width/2,res_height,WHITE);
     ball.Draw();
     player.Draw();
     cpu.Draw();
+    DrawText(TextFormat("%i",cpu_score), res_width/4 - 20, 20,80,WHITE);
+    DrawText(TextFormat("%i",player_score), res_width/2 + res_width/4, 20,80,WHITE);
 
     EndDrawing();
 
    }
+   UnloadTexture(image);
+   UnloadSound(sound);
 
   
    
